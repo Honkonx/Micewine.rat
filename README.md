@@ -19,9 +19,18 @@ Utiliza una compilación personalizada de Wine compilada para Android y Box64 pa
 
 :white_check_mark: **drivers turnip en formato rat**
 
+:pushpin:[enlace](https://github.com/Honkonx/Micewine.rat/releases/tag/Turnip-wrapper_rat)
 
 :white_check_mark: **box64 en formato rat**
 
-enlaces al grupo oficial de micewine [enlace](https://t.me/micewine_ofc)
+:pushpin:[enlace](https://github.com/Honkonx/Micewine.rat/releases/tag/Box64_rat)
 
-**mi canal de Youtube donde subo tutoriales,configuraciones,pruebas y mas** [enlace](https://youtube.com/@honkon_?si=4Goh6uKwIvzOdWXB)
+:globe_with_meridians: enlaces al grupo oficial de micewine [enlace](https://t.me/micewine_ofc)
+
+:video_game: **mi canal de Youtube donde subo tutoriales,configuraciones,pruebas y mas** [enlace](https://youtube.com/@honkon_?si=4Goh6uKwIvzOdWXB)
+
+**creditos a terceros**  
+Pablo Labs/KreitinnSoftware             
+archivos de micewine                    
+archivos de tercero                     
+créditos a quien correspondan
