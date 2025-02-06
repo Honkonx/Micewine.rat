@@ -1,9 +1,9 @@
 # Micewine.rat
-## :eight_pointed_black_star: **Contenido adicional para micewine**
+## :boom:**Contenido adicional para micewine**
 
 ![logo](https://github.com/Honkonx/Micewine.rat/blob/main/logo.jpg)
  
-:boom:**repositorio donde encontrarás driver turnip,box64 etc en formato "rat" para micewine**
+:beginner:**repositorio donde encontrarás driver turnip,box64 etc en formato "rat" para micewine**
 
 :electron: **si deseas probar el emulador/traductor ir al github oficial** [APK](https://github.com/KreitinnSoftware/MiceWine-Application/releases)-[ROOTFS](https://github.com/KreitinnSoftware/MiceWine-RootFS-Generator/releases)
 
