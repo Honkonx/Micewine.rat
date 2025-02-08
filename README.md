@@ -7,7 +7,7 @@
 
 :electron: **si deseas probar el emulador/traductor ir al github oficial** [APK](https://github.com/KreitinnSoftware/MiceWine-Application/releases)-[ROOTFS](https://github.com/KreitinnSoftware/MiceWine-RootFS-Generator/releases)
 
-también subire ROOTFS con contenido adicional (pronto)
+•para obtener ROOTFS mod con contenido adicional [ingresar aqui](https://github.com/Honkonx/MiceWine-RootFS-SD/releases)
 
 **QUE ES MICEWINE** :question:
 
