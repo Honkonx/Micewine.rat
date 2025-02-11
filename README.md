@@ -25,7 +25,15 @@ Utiliza una compilación personalizada de Wine compilada para Android y Box64 pa
 
 :pushpin:[enlace](https://github.com/Honkonx/Micewine.rat/releases/tag/Box64_rat)
 
-:globe_with_meridians: enlaces al grupo oficial de micewine [enlace](https://t.me/micewine_ofc)
+:white_check_mark: **wine en formato rat**
+
+:pushpin:[enlace](https://github.com/Honkonx/Micewine.rat/releases/tag/Wine_rat)
+
+:white_check_mark: **drivers wrapper en formato rat**
+
+:pushpin:[enlace](https://github.com/Honkonx/Micewine.rat/releases/tag/Wrapper_rat)
+
+:globe_with_meridians: enlace al grupo oficial de micewine [enlace](https://t.me/micewine_ofc)
 
 :video_game: **mi canal de Youtube donde subo tutoriales,configuraciones,pruebas y mas** [enlace](https://youtube.com/@honkon_?si=4Goh6uKwIvzOdWXB)
 
