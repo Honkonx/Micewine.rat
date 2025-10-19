@@ -1,1 +1,169 @@
+# build-wine-micewine.yml
+# Script adaptado para compilar Wine para MiceWine RootFS desde GitHub.
+name: Build Wine for MiceWine
+
+on:
+  workflow_dispatch:
+    inputs:
+      wine_version:
+        description: 'Etiqueta o rama de Git para compilar (ej: master, v10.1)'
+        required: true
+        default: 'master'
+        type: string
+
+permissions:
+  contents: write # Permite a GITHUB_TOKEN crear un Release
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Establecer variables de entorno
+      run: |
+        echo "WINE_BRANCH=${{ github.event.inputs.wine_version }}" >> $GITHUB_ENV
+        echo "Compilando Wine desde la rama/etiqueta: ${{ github.event.inputs.wine_version }}"
+
+    - name: Instalar dependencias de compilación para MiceWine
+      run: |
+        sudo apt-get update
+        # Instalar dependencias básicas y de compilación cruzada
+        sudo apt-get install -y \
+          build-essential \
+          git \
+          cmake \
+          meson \
+          ninja-build \
+          bison \
+          flex \
+          python3-pip \
+          wget \
+          python3-mako \
+          python3-yaml \
+          unzip \
+          p7zip-full \
+          glslang-tools \
+          libglib2.0-dev \
+          python3-docutils \
+          xmlto \
+          fop \
+          libxslt1-dev \
+          gcc-multilib \
+          g++-multilib \
+          mingw-w64
+
+        # Instalar dependencias de librerías para Wine (X11, Vulkan, Audio, etc.)
+        sudo apt-get install -y \
+          libx11-dev \
+          libxext-dev \
+          libxcomposite-dev \
+          libxrender-dev \
+          libxcursor-dev \
+          libxrandr-dev \
+          libxxf86vm-dev \
+          libxinerama-dev \
+          libxfixes-dev \
+          libxi-dev \
+          libvulkan-dev \
+          libglvnd-dev \
+          libpulse-dev \
+          libfreetype6-dev \
+          libgnutls28-dev \
+          libgstreamer1.0-dev \
+          libgstreamer-plugins-base1.0-dev \
+          gstreamer1.0-plugins-base \
+          gstreamer1.0-plugins-good \
+          gstreamer1.0-plugins-bad \
+          gstreamer1.0-plugins-ugly \
+          libasound2-dev \
+          libjpeg-dev \
+          libpng-dev \
+          libtiff-dev \
+          libxml2-dev
+
+    - name: Clonar el código fuente de Wine (KreitinnSoftware)
+      uses: actions/checkout@v4
+      with:
+        repository: 'KreitinnSoftware/wine'
+        ref: ${{ env.WINE_BRANCH }}
+        path: 'wine-source'
+        fetch-depth: 0
+
+    - name: Compilar herramientas de Wine (Host Build)
+      run: |
+        cd wine-source
+        mkdir -p ../wine-tools
+        cd ../wine-tools
+        ../wine-source/configure --enable-win64 --without-x
+        make -j$(nproc) tools
+
+    - name: Configurar y compilar Wine para MiceWine (WOW64)
+      run: |
+        cd wine-source
+        mkdir -p ../wine-build
+        cd ../wine-build
+
+        # Argumentos de configuración basados en build.sh para MiceWine
+        ../wine-source/configure \
+          --prefix=/opt/wine \
+          --with-wine-tools=../wine-tools \
+          --enable-archs=i386,x86_64 \
+          --with-x \
+          --with-vulkan \
+          --with-pulse \
+          --with-gstreamer \
+          --with-gnutls \
+          --with-mingw \
+          --disable-winemenubuilder \
+          --disable-win16 \
+          --disable-tests \
+          --without-oss \
+          --without-osmesa \
+          --without-usb \
+          --without-pcap \
+          --without-v4l2 \
+          --without-pcsclite \
+          --without-wayland \
+          --without-opencl \
+          --without-dbus \
+          --without-sane \
+          --without-udev \
+          --without-capi
+
+        make -j$(nproc)
+
+    - name: Instalar Wine en un directorio temporal
+      run: |
+        cd wine-build
+        make install DESTDIR=$(pwd)/../wine-package
+
+    - name: Empaquetar la compilación de Wine
+      run: |
+        cd wine-package
+        tar -czf ../wine-${{ env.WINE_BRANCH }}-micewine-wow64.tar.gz .
+        echo "Paquete creado: wine-${{ env.WINE_BRANCH }}-micewine-wow64.tar.gz"
+
+    - name: Subir artefacto de compilación
+      uses: actions/upload-artifact@v4
+      with:
+        name: wine-${{ env.WINE_BRANCH }}-micewine-wow64
+        path: wine-${{ env.WINE_BRANCH }}-micewine-wow64.tar.gz
+
+    - name: Crear Release en GitHub
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: MiceWine-${{ env.WINE_BRANCH }}-${{ github.run_number }}
+        name: Wine ${{ env.WINE_BRANCH }} for MiceWine
+        body: |
+          ## Wine para MiceWine RootFS
+          - **Versión/Rama de Wine**: ${{ env.WINE_BRANCH }}
+          - **Arquitectura**: WOW64 (soporte para aplicaciones de 32 y 64 bits)
+          - **Plataforma**: MiceWine
+          - **API Gráfica**: Vulkan
+          - **Multimedia**: GStreamer
+          
+          Compilado usando el repositorio de KreitinnSoftware.
+        files: wine-${{ env.WINE_BRANCH }}-micewine-wow64.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
