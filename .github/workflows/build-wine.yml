@@ -1,6 +1,6 @@
 # build-wine-micewine.yml
-# Script adaptado para compilar Wine para MiceWine RootFS desde GitHub.
-name: Build Wine for MiceWine
+# Script adaptado para compilar una versión de 64 bits de Wine para MiceWine RootFS desde GitHub.
+name: Build Wine for MiceWine (64-bit)
 
 on:
   workflow_dispatch:
@@ -97,17 +97,17 @@ jobs:
         ../wine-source/configure --enable-win64 --without-x
         make -j$(nproc) tools
 
-    - name: Configurar y compilar Wine para MiceWine (WOW64)
+    - name: Configurar y compilar Wine para MiceWine (solo 64-bit)
       run: |
         cd wine-source
         mkdir -p ../wine-build
         cd ../wine-build
 
-        # Argumentos de configuración basados en build.sh para MiceWine
+        # Argumentos de configuración para una compilación de solo 64-bit (win64)
         ../wine-source/configure \
           --prefix=/opt/wine \
           --with-wine-tools=../wine-tools \
-          --enable-archs=i386,x86_64 \
+          --enable-win64 \
           --with-x \
           --with-vulkan \
           --with-pulse \
@@ -140,30 +140,30 @@ jobs:
     - name: Empaquetar la compilación de Wine
       run: |
         cd wine-package
-        tar -czf ../wine-${{ env.WINE_BRANCH }}-micewine-wow64.tar.gz .
-        echo "Paquete creado: wine-${{ env.WINE_BRANCH }}-micewine-wow64.tar.gz"
+        tar -czf ../wine-${{ env.WINE_BRANCH }}-micewine-win64.tar.gz .
+        echo "Paquete creado: wine-${{ env.WINE_BRANCH }}-micewine-win64.tar.gz"
 
     - name: Subir artefacto de compilación
       uses: actions/upload-artifact@v4
       with:
-        name: wine-${{ env.WINE_BRANCH }}-micewine-wow64
-        path: wine-${{ env.WINE_BRANCH }}-micewine-wow64.tar.gz
+        name: wine-${{ env.WINE_BRANCH }}-micewine-win64
+        path: wine-${{ env.WINE_BRANCH }}-micewine-win64.tar.gz
 
     - name: Crear Release en GitHub
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: MiceWine-${{ env.WINE_BRANCH }}-${{ github.run_number }}
-        name: Wine ${{ env.WINE_BRANCH }} for MiceWine
+        tag_name: MiceWine-${{ env.WINE_BRANCH }}-win64-${{ github.run_number }}
+        name: Wine ${{ env.WINE_BRANCH }} for MiceWine (64-bit)
         body: |
-          ## Wine para MiceWine RootFS
+          ## Wine para MiceWine RootFS (64-bit)
           - **Versión/Rama de Wine**: ${{ env.WINE_BRANCH }}
-          - **Arquitectura**: WOW64 (soporte para aplicaciones de 32 y 64 bits)
+          - **Arquitectura**: Win64 (solo para aplicaciones de 64 bits)
           - **Plataforma**: MiceWine
           - **API Gráfica**: Vulkan
           - **Multimedia**: GStreamer
           
           Compilado usando el repositorio de KreitinnSoftware.
-        files: wine-${{ env.WINE_BRANCH }}-micewine-wow64.tar.gz
+        files: wine-${{ env.WINE_BRANCH }}-micewine-win64.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
