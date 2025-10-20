@@ -180,7 +180,7 @@ jobs:
     - name: Publicar en GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ env.WLINE_VERSION }}-win64-custom
+        tag_name: ${{ env.WINE_VERSION }}-win64-custom
         name: Wine ${{ env.WINE_VERSION }} (64-bit, Configuración Personalizada)
         body: |
           # Wine ${{ env.WINE_VERSION }} - 64-bit, Configuración Personalizada
