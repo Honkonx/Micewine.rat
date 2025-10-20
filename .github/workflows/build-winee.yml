@@ -23,7 +23,7 @@ jobs:
         echo "WINE_VERSION=${{ github.event.inputs.wine_version }}" >> $GITHUB_ENV
         echo "Compilando Wine versión: ${{ github.event.inputs.wine_version }}"
 
-    - name: Instalar dependencias y configurar idioma
+    - name: Instalar dependencias
       run: |
         sudo apt update
         sudo apt --fix-broken install -y
@@ -73,13 +73,9 @@ jobs:
           mingw-w64 \
           gettext \
           libgettextpo-dev \
-          locales \
           # Dependencias agregadas de build.sh
           libglvnd-dev \
           libgnutls28-dev
-        # Configurar el idioma después de instalar los paquetes
-        sudo locale-gen es_ES.UTF-8
-        sudo update-locale LANG=es_ES.UTF-8
 
     - name: Comprobar directorio de trabajo
       run: |
@@ -96,9 +92,6 @@ jobs:
         
 
     - name: Configurar y compilar Wine (64-bit, sin GStreamer)
-      env:
-        LANG: es_ES.UTF-8
-        LC_ALL: es_ES.UTF-8
       run: |
         cd wine
         mkdir -p /tmp/wine-install
@@ -115,7 +108,7 @@ jobs:
         export CROSSCXXFLAGS="-march=x86-64 -msse3 -mfpmath=sse -O3 -ftree-vectorize -pipe"
 
         # Configurar Wine 64-bit, basado en la configuración de build.sh
-        # Se eliminaron las opciones de wow64 y gstreamer
+        # Se eliminaron las opciones de wow64, gstreamer e idioma
         ../configure \
           --enable-win64 \
           --prefix=/tmp/wine-install \
@@ -124,8 +117,8 @@ jobs:
           --with-pulse \
           --with-freetype \
           --with-fontconfig \
-          --with-gettext \
-          --enable-nls \
+          --without-gettext \
+          --disable-nls \
           --with-opengl \
           --with-gnutls \
           --with-xinput \
@@ -187,7 +180,7 @@ jobs:
     - name: Publicar en GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ env.WINE_VERSION }}-win64-custom
+        tag_name: ${{ env.WLINE_VERSION }}-win64-custom
         name: Wine ${{ env.WINE_VERSION }} (64-bit, Configuración Personalizada)
         body: |
           # Wine ${{ env.WINE_VERSION }} - 64-bit, Configuración Personalizada
@@ -201,7 +194,6 @@ jobs:
           ## Características
           ✓ Arquitectura Win64
           ✓ Soporte para la API gráfica Vulkan y OpenGL
-          ✓ Soporte para entorno en español
 
           ## Información de Compilación
           - Fecha de compilación: ${{ github.event.head_commit.timestamp }}
