@@ -71,6 +71,8 @@ jobs:
           libgnutls28-dev \
           libgstreamer1.0-dev \
           libgstreamer-plugins-base1.0-dev \
+          libgstreamer-plugins-good1.0-dev \
+          libgstreamer-plugins-bad1.0-dev \
           gstreamer1.0-plugins-base \
           gstreamer1.0-plugins-good \
           gstreamer1.0-plugins-bad \
@@ -98,6 +100,9 @@ jobs:
         make -j$(nproc) tools
 
     - name: Configurar y compilar Wine para MiceWine (solo 64-bit)
+      env:
+        CC: "gcc"
+        CROSSCC: "x86_64-w64-mingw32-gcc"
       run: |
         cd wine-source
         mkdir -p ../wine-build
@@ -166,4 +171,5 @@ jobs:
         files: wine-${{ env.WINE_BRANCH }}-micewine-win64.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
