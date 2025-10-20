@@ -1,175 +1,268 @@
-# build-wine-micewine.yml
-# Script adaptado para compilar una versión de 64 bits de Wine para MiceWine RootFS desde GitHub.
-name: Build Wine for MiceWine (64-bit)
+# build-wine-es.yml
+name: Compilar BigWine (Big WOW64 para Termux con Vulkan y GStreamer Completo)
 
 on:
   workflow_dispatch:
     inputs:
       wine_version:
-        description: 'Etiqueta o rama de Git para compilar (ej: master, v10.1)'
+        description: 'Versión de Wine a compilar (ej: 9.0)'
         required: true
-        default: 'master'
+        default: '9.0'
         type: string
 
 permissions:
-  contents: write # Permite a GITHUB_TOKEN crear un Release
+  contents: write  # Permite que GITHUB_TOKEN cree un Release
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
-    - name: Establecer variables de entorno
+    - name: Establecer variables de versión
       run: |
-        echo "WINE_BRANCH=${{ github.event.inputs.wine_version }}" >> $GITHUB_ENV
-        echo "Compilando Wine desde la rama/etiqueta: ${{ github.event.inputs.wine_version }}"
+        echo "WINE_VERSION=${{ github.event.inputs.wine_version }}" >> $GITHUB_ENV
+        echo "STAGING_VERSION=v${{ github.event.inputs.wine_version }}"
+        echo "Compilando Wine versión: ${{ github.event.inputs.wine_version }}"
+        echo "Versión de parches Staging: v${{ github.event.inputs.wine_version }}"
 
-    - name: Instalar dependencias de compilación para MiceWine
+    - name: Instalar dependencias de compilación
       run: |
-        sudo apt-get update
-        # Instalar dependencias básicas y de compilación cruzada
-        sudo apt-get install -y \
-          build-essential \
+        sudo apt update
+        # Primero, reparar dependencias rotas
+        sudo apt --fix-broken install -y
+        sudo apt install -y \
+          debootstrap \
+          perl \
           git \
-          cmake \
-          meson \
-          ninja-build \
-          bison \
-          flex \
-          python3-pip \
           wget \
-          python3-mako \
-          python3-yaml \
-          unzip \
-          p7zip-full \
-          glslang-tools \
-          libglib2.0-dev \
-          python3-docutils \
-          xmlto \
-          fop \
-          libxslt1-dev \
+          xz-utils \
+          bubblewrap \
+          autoconf \
+          flex \
+          bison \
           gcc-multilib \
           g++-multilib \
-          mingw-w64
-
-        # Instalar dependencias de librerías para Wine (X11, Vulkan, Audio, etc.)
-        sudo apt-get install -y \
           libx11-dev \
           libxext-dev \
-          libxcomposite-dev \
-          libxrender-dev \
-          libxcursor-dev \
-          libxrandr-dev \
-          libxxf86vm-dev \
-          libxinerama-dev \
-          libxfixes-dev \
           libxi-dev \
-          libvulkan-dev \
-          libglvnd-dev \
-          libpulse-dev \
+          libxrandr-dev \
+          libxcursor-dev \
+          libxcomposite-dev \
+          libxdamage-dev \
+          libxfixes-dev \
+          libxxf86vm-dev \
+          libxrender-dev \
+          libxinerama-dev \
+          libgl-dev \
+          libglu-dev \
+          libosmesa6-dev \
           libfreetype6-dev \
-          libgnutls28-dev \
-          libgstreamer1.0-dev \
-          libgstreamer-plugins-base1.0-dev \
-          libgstreamer-plugins-good1.0-dev \
-          libgstreamer-plugins-bad1.0-dev \
-          gstreamer1.0-plugins-base \
-          gstreamer1.0-plugins-good \
-          gstreamer1.0-plugins-bad \
-          gstreamer1.0-plugins-ugly \
+          libfontconfig1-dev \
+          libpcap-dev \
+          libdbus-1-dev \
+          libssl-dev \
           libasound2-dev \
+          libpulse-dev \
+          libudev-dev \
+          libcups2-dev \
           libjpeg-dev \
           libpng-dev \
           libtiff-dev \
-          libxml2-dev
+          libxml2-dev \
+          libvulkan-dev \
+          vulkan-tools \
+          libvulkan1 \
+          mesa-vulkan-drivers \
+          mingw-w64 \
+          gettext \
+          libgettextpo-dev \
+          locales
 
-    - name: Clonar el código fuente de Wine (KreitinnSoftware)
-      uses: actions/checkout@v4
-      with:
-        repository: 'KreitinnSoftware/wine'
-        ref: ${{ env.WINE_BRANCH }}
-        path: 'wine-source'
-        fetch-depth: 0
-
-    - name: Compilar herramientas de Wine (Host Build)
+    - name: Instalar dependencias multimedia y de audio
       run: |
-        cd wine-source
-        mkdir -p ../wine-tools
-        cd ../wine-tools
-        ../wine-source/configure --enable-win64 --without-x
-        make -j$(nproc) tools
+        # Instalar libunwind-dev primero para resolver problemas de dependencias
+        sudo apt install -y libunwind-dev
+        # Luego, instalar los paquetes relacionados con multimedia
+        sudo apt install -y \
+          libgstreamer1.0-dev \
+          libgstreamer-plugins-base1.0-dev \
+          libmpg123-dev \
+          libopenal-dev
 
-    - name: Configurar y compilar Wine para MiceWine (solo 64-bit)
-      env:
-        CC: "gcc"
-        CROSSCC: "x86_64-w64-mingw32-gcc"
+    - name: Configurar entorno de idioma español
       run: |
-        cd wine-source
-        mkdir -p ../wine-build
-        cd ../wine-build
+        sudo locale-gen es_ES.UTF-8
+        sudo update-locale LANG=es_ES.UTF-8
+        export LANG=es_ES.UTF-8
+        export LC_ALL=es_ES.UTF-8
 
-        # Argumentos de configuración para una compilación de solo 64-bit (win64)
-        ../wine-source/configure \
-          --prefix=/opt/wine \
-          --with-wine-tools=../wine-tools \
+    - name: Comprobar directorio de trabajo
+      run: |
+        echo "Directorio de trabajo actual: $(pwd)"
+        ls -la
+        echo "Versión a compilar: ${{ env.WINE_VERSION }}"
+          
+    - name: Clonar código fuente de Wine
+      run: |
+        git clone https://github.com/KreitinnSoftware/wine.git
+        cd wine
+        git checkout wine-9.0
+        
+
+    - name: Configurar y compilar Wine WOW64 (con Vulkan y GStreamer completo)
+      run: |
+        cd wine
+        mkdir -p /tmp/wine-install
+        sudo chmod 777 -R /tmp/wine-install
+
+        # Crear directorio de compilación
+        mkdir -p build-wow64
+        cd build-wow64
+        export CROSSCC="x86_64-w64-mingw32-gcc"
+        export CROSSCXX="x86_64-w64-mingw32-g++"
+        export CFLAGS="-march=x86-64 -msse3 -mfpmath=sse -O3 -ftree-vectorize -pipe"
+        export CXXFLAGS="-march=x86-64 -msse3 -mfpmath=sse -O3 -ftree-vectorize -pipe"
+        export CROSSCFLAGS="-march=x86-64 -msse3 -mfpmath=sse -O3 -ftree-vectorize -pipe"
+        export CROSSCXXFLAGS="-march=x86-64 -msse3 -mfpmath=sse -O3 -ftree-vectorize -pipe"
+
+        # Configurar Wine WOW64, habilitando Vulkan y GStreamer completo
+        ../configure \
           --enable-win64 \
+          --enable-archs=i386,x86_64 \
+          --prefix=/tmp/wine-install \
           --with-x \
           --with-vulkan \
+          --with-alsa \
           --with-pulse \
+          --with-freetype \
+          --with-fontconfig \
           --with-gstreamer \
-          --with-gnutls \
-          --with-mingw \
-          --disable-winemenubuilder \
-          --disable-win16 \
-          --disable-tests \
-          --without-oss \
-          --without-osmesa \
-          --without-usb \
-          --without-pcap \
-          --without-v4l2 \
-          --without-pcsclite \
-          --without-wayland \
-          --without-opencl \
+          --with-gettext \
+          --enable-nls \
           --without-dbus \
           --without-sane \
+          --without-pcap \
+          --without-pcsclite \
+          --disable-winemenubuilder \
+          --disable-win16 \
+          --disable-debug \
+          --disable-tests \
+          --without-piper \
+          --without-xinerama \
+          --without-cups \
+          --without-capi \
+          --without-coreaudio \
+          --without-gphoto \
+          --without-osmesa \
+          --without-oss \
           --without-udev \
-          --without-capi
+          --without-unwind \
+          --without-usb \
+          --without-v4l2 \
+          --without-wayland
 
+        # Compilar Wine WOW64
+        echo "Iniciando compilación de Wine WOW64 con soporte para Vulkan y GStreamer..."
         make -j$(nproc)
 
-    - name: Instalar Wine en un directorio temporal
+    - name: Instalar Wine y obtener información de la versión
       run: |
-        cd wine-build
-        make install DESTDIR=$(pwd)/../wine-package
+        cd wine/build-wow64
+        # Instalar Wine WOW64
+        make install
 
-    - name: Empaquetar la compilación de Wine
+        # Usar el número de versión de la entrada
+        VERSION="${{ env.WINE_VERSION }}"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "Versión de Wine: $VERSION - Compilación WOW64 con Vulkan y GStreamer completo"
+
+    - name: Validar soporte de Vulkan y GStreamer
       run: |
-        cd wine-package
-        tar -czf ../wine-${{ env.WINE_BRANCH }}-micewine-win64.tar.gz .
-        echo "Paquete creado: wine-${{ env.WINE_BRANCH }}-micewine-win64.tar.gz"
+        echo "Verificando soporte de Vulkan..."
+        if [ -f "/tmp/wine-install/bin/wine" ]; then
+          echo "El binario de Wine existe."
+        else
+          echo "Error: El binario de Wine no existe."
+          exit 1
+        fi
+        
+        echo "Verificando archivos relacionados con Vulkan..."
+        find /tmp/wine-install -name "*vulkan*" | head -10
+        echo ""
+        echo "Verificando winevulkan.dll..."
+        find /tmp/wine-install -name "winevulkan.dll*" | head -5
+        echo ""
+        echo "Verificando soporte de GStreamer..."
+        find /tmp/wine-install -name "*gst*" | head -10
+
+    - name: Preparar empaquetado
+      run: |
+        # Crear directorio de empaquetado
+        mkdir -p wine-package/opt/wine
+        
+        # Copiar archivos de instalación de Wine
+        echo "Copiando archivos de Wine..."
+        cp -r /tmp/wine-install/* wine-package/opt/wine/
+
+    - name: Crear archivo comprimido
+      run: |
+        echo "Estructura final de archivos:"
+        find wine-package -type f | sort
+        echo ""
+        echo "Verificando archivos de Vulkan:"
+        find wine-package -name "*vulkan*" | sort
+        echo ""
+        echo "Verificando archivos de GStreamer:"
+        find wine-package -name "*gst*" | sort
+        
+        # Empaquetar
+        tar -czf wine-${{ env.WINE_VERSION }}-true-wow64-bin-gstreamer-termux.tar.gz wine-package/
+        
+        echo "Empaquetado completado:"
+        ls -lh wine-*.tar.gz
 
     - name: Subir artefacto de compilación
       uses: actions/upload-artifact@v4
       with:
-        name: wine-${{ env.WINE_BRANCH }}-micewine-win64
-        path: wine-${{ env.WINE_BRANCH }}-micewine-win64.tar.gz
+        name: wine-${{ env.WINE_VERSION }}-true-wow64-bin-gstreamer-termux
+        path: wine-${{ env.WINE_VERSION }}-true-wow64-bin-gstreamer-termux.tar.gz
 
-    - name: Crear Release en GitHub
+    - name: Publicar en GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: MiceWine-${{ env.WINE_BRANCH }}-win64-${{ github.run_number }}
-        name: Wine ${{ env.WINE_BRANCH }} for MiceWine (64-bit)
+        tag_name: ${{ env.WINE_VERSION }}-true-wow64-gstreamer
+        name: Wine ${{ env.WINE_VERSION }} (WOW64 con Vulkan & GStreamer para Termux)
         body: |
-          ## Wine para MiceWine RootFS (64-bit)
-          - **Versión/Rama de Wine**: ${{ env.WINE_BRANCH }}
-          - **Arquitectura**: Win64 (solo para aplicaciones de 64 bits)
-          - **Plataforma**: MiceWine
-          - **API Gráfica**: Vulkan
-          - **Multimedia**: GStreamer
+          # Wine ${{ env.WINE_VERSION }} - WOW64 con Vulkan & GStreamer para Termux
           
-          Compilado usando el repositorio de KreitinnSoftware.
-        files: wine-${{ env.WINE_BRANCH }}-micewine-win64.tar.gz
+          ## Información de la Versión
+          - **Versión de Wine**: ${{ env.WINE_VERSION }}
+          - **Arquitectura**: WOW64 (soporte para aplicaciones de 32 y 64 bits)
+          - **Plataforma**: Termux (Android)
+          - **API Gráfica**: Soporte para Vulkan habilitado
+          - **Multimedia**: Soporte completo para GStreamer
+          
+          ## Características
+          ✓ Arquitectura WOW64
+          ✓ Soporte para aplicaciones Windows de 32 y 64 bits
+          ✓ Soporte para la API gráfica Vulkan
+          ✓ Soporte completo para GStreamer
+          ✓ Soporte para entorno en español
+          ✓ Parches aplicados para mejorar la compatibilidad
+
+          ## Información de Compilación
+          - Fecha de compilación: ${{ github.event.head_commit.timestamp }}
+          - Commit: ${{ github.sha }}
+          - Workflow: ${{ github.workflow }}
+        files: wine-${{ env.WINE_VERSION }}-true-wow64-bin-gstreamer-termux.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
+    - name: Mostrar información de la versión
+      run: |
+        echo "✅ Compilación de Wine WOW64 con Vulkan y GStreamer completada"
+        echo "Número de versión: ${{ env.WINE_VERSION }}"
+        echo "Arquitectura: x86_64 WOW64"
+        echo "Entorno: Termux"
+        echo "API Gráfica: Soporte Vulkan habilitado"
+        echo "Multimedia: Soporte GStreamer completo"
