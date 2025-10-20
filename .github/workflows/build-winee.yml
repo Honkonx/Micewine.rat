@@ -23,7 +23,7 @@ jobs:
         echo "WINE_VERSION=${{ github.event.inputs.wine_version }}" >> $GITHUB_ENV
         echo "Compilando Wine versión: ${{ github.event.inputs.wine_version }}"
 
-    - name: Instalar dependencias de compilación
+    - name: Instalar dependencias y configurar idioma
       run: |
         sudo apt update
         sudo apt --fix-broken install -y
@@ -77,13 +77,9 @@ jobs:
           # Dependencias agregadas de build.sh
           libglvnd-dev \
           libgnutls28-dev
-
-    - name: Configurar entorno de idioma español
-      run: |
+        # Configurar el idioma después de instalar los paquetes
         sudo locale-gen es_ES.UTF-8
         sudo update-locale LANG=es_ES.UTF-8
-        export LANG=es_ES.UTF-8
-        export LC_ALL=es_ES.UTF-8
 
     - name: Comprobar directorio de trabajo
       run: |
@@ -95,10 +91,14 @@ jobs:
       run: |
         git clone https://github.com/KreitinnSoftware/wine.git
         cd wine
-        git checkout wine-9.0
+        # Usar la versión proporcionada en la entrada
+        git checkout wine-${{ github.event.inputs.wine_version }}
         
 
     - name: Configurar y compilar Wine (64-bit, sin GStreamer)
+      env:
+        LANG: es_ES.UTF-8
+        LC_ALL: es_ES.UTF-8
       run: |
         cd wine
         mkdir -p /tmp/wine-install
@@ -218,3 +218,4 @@ jobs:
         echo "Arquitectura: x86_64 (Win64)"
         echo "Entorno: Termux"
         echo "Multimedia: Sin soporte para GStreamer"
+
