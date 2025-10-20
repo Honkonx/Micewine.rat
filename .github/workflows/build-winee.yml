@@ -73,7 +73,6 @@ jobs:
           mingw-w64 \
           gettext \
           libgettextpo-dev \
-          # Dependencias agregadas de build.sh
           libglvnd-dev \
           libgnutls28-dev
 
@@ -88,7 +87,7 @@ jobs:
         git clone https://github.com/KreitinnSoftware/wine.git
         cd wine
         # Usar la versión proporcionada en la entrada
-        git checkout wine-${{ github.event.inputs.wine_version }}
+        git checkout wine-9.0
         
 
     - name: Configurar y compilar Wine (64-bit, sin GStreamer)
