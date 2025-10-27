@@ -199,7 +199,7 @@ jobs:
           --without-wayland \
           --without-opencl \
           --without-dbus \
-S          --without-sane \
+          --without-sane \
           --without-udev \
           --without-capi
 
@@ -300,4 +300,5 @@ S          --without-sane \
         echo "Paquete: ${{ env.PACKAGE_NAME }}.tar.xz"
         echo "Arquitectura: x86_64 True WOW64"
         echo "Plataforma: Micewine"
+
 
