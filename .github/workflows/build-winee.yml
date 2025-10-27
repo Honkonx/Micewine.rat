@@ -195,7 +195,7 @@ jobs:
           --without-netapi \
           --without-pcap \
           --without-gphoto \
-V         --without-v4l2 \
+          --without-v4l2 \
           --without-pcsclite \
           --without-wayland \
           --without-opencl \
