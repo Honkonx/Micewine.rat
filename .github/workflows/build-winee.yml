@@ -74,7 +74,6 @@ jobs:
           libgnutls28-dev \
           libgstreamer1.0-dev \
           libgstreamer-plugins-base1.0-dev \
-          libgstreamer-plugins-good1.0-dev \
           libunwind-dev
 
         # Dependencias de Wine (basadas en tu lista) - 32 bits (para WOW64)
@@ -96,7 +95,6 @@ jobs:
           libgnutls28-dev:i386 \
           libgstreamer1.0-dev:i386 \
           libgstreamer-plugins-base1.0-dev:i386 \
-          libgstreamer-plugins-good1.0-dev:i386 \
           libunwind-dev:i386
 
     - name: 设置中文语言环境
@@ -283,7 +281,7 @@ jobs:
           ## Características
           ✓ True WOW64 (32/64 bit)
           ✓ Soporte Vulkan
-          ✓ Soporte GStreamer (Base + Good)
+          ✓ Soporte GStreamer (Base)
           ✓ Rutas de /tmp reparadas para Micewine
           
           ## Build Info
