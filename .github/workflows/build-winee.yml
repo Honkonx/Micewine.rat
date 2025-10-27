@@ -38,7 +38,7 @@ jobs:
         sudo apt --fix-broken install -y
         
         # Dependencias base de compilación
-        sudo apt install -y \
+        sudo apt install -y --no-install-recommends \
           perl \
           git \
           wget \
@@ -56,7 +56,8 @@ jobs:
           language-pack-zh-hans
 
         # Dependencias de Wine (basadas en tu lista) - 64 bits
-        sudo apt install -y \
+        # Usamos --no-install-recommends para evitar libgudev
+        sudo apt install -y --no-install-recommends \
           libx11-dev \
           libxext-dev \
           libxcomposite-dev \
@@ -74,10 +75,12 @@ jobs:
           libgnutls28-dev \
           libgstreamer1.0-dev \
           libgstreamer-plugins-base1.0-dev \
+          libgstreamer-plugins-good1.0-dev \
           libunwind-dev
 
         # Dependencias de Wine (basadas en tu lista) - 32 bits (para WOW64)
-        sudo apt install -y \
+        # Usamos --no-install-recommends para evitar libgudev:i386
+        sudo apt install -y --no-install-recommends \
           libx11-dev:i386 \
           libxext-dev:i386 \
           libxcomposite-dev:i386 \
@@ -95,6 +98,7 @@ jobs:
           libgnutls28-dev:i386 \
           libgstreamer1.0-dev:i386 \
           libgstreamer-plugins-base1.0-dev:i386 \
+          libgstreamer-plugins-good1.0-dev:i386 \
           libunwind-dev:i386
 
     - name: 设置中文语言环境
@@ -281,7 +285,7 @@ jobs:
           ## Características
           ✓ True WOW64 (32/64 bit)
           ✓ Soporte Vulkan
-          ✓ Soporte GStreamer (Base)
+          ✓ Soporte GStreamer (Base + Good)
           ✓ Rutas de /tmp reparadas para Micewine
           
           ## Build Info
