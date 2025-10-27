@@ -20,7 +20,8 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    # SOLUCIÓN: Cambiado a Ubuntu 22.04 para evitar el conflicto de paquetes en 24.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: 设置版本变量
@@ -56,7 +57,6 @@ jobs:
           language-pack-zh-hans
 
         # Dependencias de Wine (basadas en tu lista) - 64 bits
-        # Usamos --no-install-recommends para evitar libgudev
         sudo apt install -y --no-install-recommends \
           libx11-dev \
           libxext-dev \
@@ -79,7 +79,6 @@ jobs:
           libunwind-dev
 
         # Dependencias de Wine (basadas en tu lista) - 32 bits (para WOW64)
-        # Usamos --no-install-recommends para evitar libgudev:i386
         sudo apt install -y --no-install-recommends \
           libx11-dev:i386 \
           libxext-dev:i386 \
@@ -196,7 +195,7 @@ jobs:
           --without-netapi \
           --without-pcap \
           --without-gphoto \
-          --without-v4l2 \
+V         --without-v4l2 \
           --without-pcsclite \
           --without-wayland \
           --without-opencl \
